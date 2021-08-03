@@ -16,7 +16,8 @@ contract FuzzyHat is ERC721Enumerable {
     // ---
     // Properties
     // ---
-    uint256 private invocations = 1;
+    address public ownerAddress;
+    uint256 public nextTokenId = 1;
     string private contractUri;
     address public payoutAddress;
 
@@ -48,6 +49,7 @@ contract FuzzyHat is ERC721Enumerable {
     // Constructor
     // ---
     constructor() ERC721("FuzzyHat NFT", "FUZZYHATNFT") {
+        ownerAddress = msg.sender;
         isAdmin[msg.sender] = true;
         payoutAddress = msg.sender;
         // @TODO(iolson): Setup default contract URI data.
@@ -64,7 +66,7 @@ contract FuzzyHat is ERC721Enumerable {
         if (interfaceId == _INTERFACE_ID_ERC2981) {
             return true;
         }
-        
+
         return false;
     }
 
@@ -72,11 +74,10 @@ contract FuzzyHat is ERC721Enumerable {
     // Minting
     // ---
     function mintToken(string memory metadataUri) public onlyAdmin returns (uint256 tokenId) {
-        tokenId = invocations;
-        invocations = invocations.add(1);
+        tokenId = nextTokenId;
+        nextTokenId = nextTokenId.add(1);
         _mint(msg.sender, tokenId);
         metadataByTokenId[tokenId] = metadataUri;
-        emit PermanentURI(metadataUri, tokenId);
     }
 
     // ---
@@ -84,24 +85,14 @@ contract FuzzyHat is ERC721Enumerable {
     // ---
     function burn(uint256 tokenId) public virtual onlyAdmin {
         //solhint-disable-next-line max-line-length
-        require(_isApprovedOrOwner(_msgSender(), tokenId), "Only approved artist owners.");
+        require(_isApprovedOrOwner(_msgSender(), tokenId), "Only owners.");
         _burn(tokenId);
-    }
-
-    // ---
-    // Metadata
-    // ---
-    function tokenURI(uint256 _tokenId) public view override virtual onlyValidTokenId(_tokenId) returns (string memory) {
-        return metadataByTokenId[_tokenId];
-    }
-
-    function contractURI() public view virtual returns (string memory) {
-        return contractUri;
     }
 
     // ---
     // Update Functions
     // ---
+    
     function addAdmin(address addAddress) public onlyAdmin {
         isAdmin[addAddress] = true;
     }
@@ -118,9 +109,49 @@ contract FuzzyHat is ERC721Enumerable {
         payoutAddress = newPayoutAddress;
     }
 
+    function updateTokenMetadata(uint256 tokenId, string memory metadataUri, bool permanent) public onlyAdmin onlyValidTokenId(tokenId) {
+        metadataByTokenId[tokenId] = metadataUri;
+
+        if (permanent) {
+            emit PermanentURI(metadataUri, tokenId);
+        }
+    }
+
+    // ---
+    // Contract Retrieve Functions
+    // ---
+    
+    function tokenURI(uint256 tokenId) public view override virtual onlyValidTokenId(tokenId) returns (string memory) {
+        return metadataByTokenId[tokenId];
+    }
+
+    function contractURI() public view virtual returns (string memory) {
+        return contractUri;
+    }
+
+    function getTokensOfOwner(address walletAddress) public view returns (uint256[] memory tokenIds) {
+        uint256 tokenCount = balanceOf(walletAddress);
+
+        if (tokenCount == 0) {
+            tokenIds = new uint256[](0);
+        } else {
+            tokenIds = new uint256[](tokenCount);
+            uint256 index;
+            for (index = 0; index < tokenCount; index++) {
+                tokenIds[index] = tokenOfOwnerByIndex(walletAddress, index);
+            }
+        }
+
+        return tokenIds;
+    }
+
     // ---
     // Secondary Marketplace Functions
     // ---
+
+    function owner() external view returns (address) {
+        return ownerAddress;
+    }
 
     /* Rarible Royalties V1 */
     function getFeeRecipients(uint256 tokenId) public view onlyValidTokenId(tokenId) returns (address payable[] memory) {
