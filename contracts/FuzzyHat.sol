@@ -10,7 +10,7 @@ contract FuzzyHat is ERC721Enumerable {
     // ---
     // Constants
     // ---
-    uint16 constant public royaltyFeeBps = 1000; // 10%
+    uint256 constant public royaltyFeeBps = 1000; // 10%
     bytes4 private constant _INTERFACE_ID_ERC2981 = 0x2a55205a;
 
     // ---
@@ -168,6 +168,6 @@ contract FuzzyHat is ERC721Enumerable {
 
     /* EIP-2981 */
     function royaltyInfo(uint256 _tokenId, uint256 _salePrice) external view onlyValidTokenId(_tokenId) returns (address receiver, uint256 amount) {
-        return (payoutAddress, _salePrice.div(100).mul(royaltyFeeBps));
+        return (payoutAddress, _salePrice.div(royaltyFeeBps.div(100)));
     }
 }

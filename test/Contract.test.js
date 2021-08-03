@@ -295,5 +295,11 @@ contract('Contract', (accounts) => {
             const bps = await contract.getFeeBps('1')
             assert.equal(bps[0], 1000)
         })
+
+        it('can properly send back data for EIP-1987 royalty standard', async () => {
+            const royaltyInfo = await contract.royaltyInfo('1', web3.utils.toWei('0.1', 'ether'))
+            assert.equal(royaltyInfo.receiver, accounts[9])
+            assert.equal(royaltyInfo.amount.toString(), web3.utils.toBN(web3.utils.toWei('0.01', 'ether')).toString())
+        })
     })
 })
