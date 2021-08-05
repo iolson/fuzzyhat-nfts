@@ -29,6 +29,39 @@ contract('Contract', (accounts) => {
         })
     })
 
+    describe('interfaces', async () => {
+
+        it('supports erc-165 interface', async () => {
+            const supports = await contract.supportsInterface('0x01ffc9a7')
+            assert.equal(supports, true)
+        })
+
+        it('supports erc-721 interface', async () => {
+            const supports = await contract.supportsInterface('0x80ac58cd')
+            assert.equal(supports, true)
+        })
+
+        it('supports erc-721 metadata interface', async () => {
+            const supports = await contract.supportsInterface('0x5b5e139f')
+            assert.equal(supports, true)
+        })
+
+        it('supports erc-721 enumerable interface', async () => {
+            const supports = await contract.supportsInterface('0x780e9d63')
+            assert.equal(supports, true)
+        })
+
+        it('supports rarible royalties v2 interface', async () => {
+            const supports = await contract.supportsInterface('0xcad96cca')
+            assert.equal(supports, true)
+        })
+
+        it('supports eip-2981 royalty standard interface interface', async () => {
+            const supports = await contract.supportsInterface('0x2a55205a')
+            assert.equal(supports, true)
+        })
+    })
+
     describe('minting', async () => {
 
         it('non-admin fails to mint', async () => {
@@ -289,7 +322,7 @@ contract('Contract', (accounts) => {
     describe('royalties', async () => {
 
         it('rariable can get royalties', async () => {
-            const royalties = await contract.getRoyalties('1')
+            const royalties = await contract.getRaribleV2Royalties('1')
             assert.equal(royalties[0].account, accounts[9])
             assert.equal(royalties[0].value, 1000)
         })

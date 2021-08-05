@@ -20,7 +20,7 @@ contract FuzzyHat is ERC721Enumerable, RoyaltiesV2 {
     bytes4 private constant _INTERFACE_ID_ERC721 = 0x80ac58cd;
     bytes4 private constant _INTERFACE_ID_ERC721_METADATA = 0x5b5e139f;
     bytes4 private constant _INTERFACE_ID_ERC721_ENUMERABLE = 0x780e9d63;
-    bytes4 private constant _INTERFACE_ID_ERC2981 = 0x2a55205a;
+    bytes4 private constant _INTERFACE_ID_EIP2981 = 0x2a55205a;
 
     // ---
     // Properties
@@ -34,6 +34,7 @@ contract FuzzyHat is ERC721Enumerable, RoyaltiesV2 {
     // Events
     // ---
     event PermanentURI(string _value, uint256 indexed _id); // OpenSea Freezing Metadata
+    event Interface(bytes4 indexed actualInterfaceId, bytes4 expectedInterfaceId, string interfaceName);
 
     // ---
     // Mappings
@@ -70,11 +71,10 @@ contract FuzzyHat is ERC721Enumerable, RoyaltiesV2 {
     function supportsInterface(bytes4 interfaceId) public view virtual override returns (bool) {
         return interfaceId == _INTERFACE_ID_ERC165
         || interfaceId == LibRoyaltiesV2._INTERFACE_ID_ROYALTIES
-        || interfaceId == _INTERFACE_ID_ERC165
         || interfaceId == _INTERFACE_ID_ERC721
         || interfaceId == _INTERFACE_ID_ERC721_METADATA
         || interfaceId == _INTERFACE_ID_ERC721_ENUMERABLE
-        || interfaceId == _INTERFACE_ID_ERC2981
+        || interfaceId == _INTERFACE_ID_EIP2981
         || super.supportsInterface(interfaceId);
     }
 
@@ -162,7 +162,7 @@ contract FuzzyHat is ERC721Enumerable, RoyaltiesV2 {
     }
 
     /* Rarible Royalties V2 */
-    function getRoyalties(uint256 id) external view override onlyValidTokenId(id) returns (LibPart.Part[] memory) {
+    function getRaribleV2Royalties(uint256 id) external view override onlyValidTokenId(id) returns (LibPart.Part[] memory) {
         LibPart.Part[] memory royalties = new LibPart.Part[](1);
         royalties[0] = LibPart.Part({
             account: payable(payoutAddress),
@@ -173,7 +173,7 @@ contract FuzzyHat is ERC721Enumerable, RoyaltiesV2 {
     }
 
     /* EIP-2981 */
-    function royaltyInfo(uint256 _tokenId, uint256 _salePrice) external view onlyValidTokenId(_tokenId) returns (address receiver, uint256 amount) {
-        return (payoutAddress, _salePrice.div(royaltyFeeBps.div(100)));
+    function royaltyInfo(uint256 tokenId, uint256 salePrice) external view onlyValidTokenId(tokenId) returns (address receiver, uint256 amount) {
+        return (payoutAddress, salePrice.div(royaltyFeeBps.div(100)));
     }
 }
