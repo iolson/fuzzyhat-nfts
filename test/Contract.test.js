@@ -289,11 +289,9 @@ contract('Contract', (accounts) => {
     describe('royalties', async () => {
 
         it('rariable can get royalties', async () => {
-            const recipients = await contract.getFeeRecipients('1')
-            assert.equal(recipients[0], accounts[9])
-
-            const bps = await contract.getFeeBps('1')
-            assert.equal(bps[0], 1000)
+            const royalties = await contract.getRoyalties('1')
+            assert.equal(royalties[0].account, accounts[9])
+            assert.equal(royalties[0].value, 1000)
         })
 
         it('can properly send back data for EIP-1987 royalty standard', async () => {
