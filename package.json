@@ -5,6 +5,7 @@
     "author": "ianmolson@gmail.com",
     "dependencies": {
         "@openzeppelin/contracts": "^4.2.0",
+        "@rarible/royalties": "^0.7.0",
         "chai": "^4.3.4",
         "chai-as-promised": "^7.1.1",
         "truffle": "^5.1.65",

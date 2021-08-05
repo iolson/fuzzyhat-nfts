@@ -3,14 +3,21 @@ pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
+import "@rarible/royalties/contracts//LibPart.sol";
+import "@rarible/royalties/contracts/LibRoyaltiesV2.sol";
+import "@rarible/royalties/contracts/RoyaltiesV2.sol";
 
-contract FuzzyHat is ERC721Enumerable {
+contract FuzzyHat is ERC721Enumerable, RoyaltiesV2 {
     using SafeMath for uint256;
 
     // ---
     // Constants
     // ---
     uint256 constant public royaltyFeeBps = 1000; // 10%
+    bytes4 private constant _INTERFACE_ID_ERC165 = 0x01ffc9a7;
+    bytes4 private constant _INTERFACE_ID_ERC721 = 0x80ac58cd;
+    bytes4 private constant _INTERFACE_ID_ERC721_METADATA = 0x5b5e139f;
+    bytes4 private constant _INTERFACE_ID_ERC721_ENUMERABLE = 0x780e9d63;
     bytes4 private constant _INTERFACE_ID_ERC2981 = 0x2a55205a;
 
     // ---
@@ -59,15 +66,14 @@ contract FuzzyHat is ERC721Enumerable {
     // Supported Interfaces
     // ---
     function supportsInterface(bytes4 interfaceId) public view virtual override returns (bool) {
-        if (interfaceId == type(IERC165).interfaceId) {
-            return true;
-        }
-
-        if (interfaceId == _INTERFACE_ID_ERC2981) {
-            return true;
-        }
-
-        return false;
+        return interfaceId == _INTERFACE_ID_ERC165
+        || interfaceId == LibRoyaltiesV2._INTERFACE_ID_ROYALTIES
+        || interfaceId == _INTERFACE_ID_ERC165
+        || interfaceId == _INTERFACE_ID_ERC721
+        || interfaceId == _INTERFACE_ID_ERC721_METADATA
+        || interfaceId == _INTERFACE_ID_ERC721_ENUMERABLE
+        || interfaceId == _INTERFACE_ID_ERC2981
+        || super.supportsInterface(interfaceId);
     }
 
     // ---
@@ -153,17 +159,15 @@ contract FuzzyHat is ERC721Enumerable {
         return ownerAddress;
     }
 
-    /* Rarible Royalties V1 */
-    function getFeeRecipients(uint256 tokenId) public view onlyValidTokenId(tokenId) returns (address payable[] memory) {
-        address payable[] memory recipients = new address payable[](1);
-        recipients[0] = payable(payoutAddress);
-        return recipients;
-    }
+    /* Rarible Royalties V2 */
+    function getRaribleV2Royalties(uint256 id) external view override onlyValidTokenId(id) returns (LibPart.Part[] memory) {
+        LibPart.Part[] memory royalties = new LibPart.Part[](1);
+        royaltyies[0] = LibPart.Part({
+            account: payable(payoutAddress),
+            value: uint96(royaltyFeeBps)
+        });
 
-    function getFeeBps(uint256 tokenId) public view onlyValidTokenId(tokenId) returns (uint[] memory) {
-        uint256[] memory feeBps = new uint[](1);
-        feeBps[0] = uint(royaltyFeeBps);
-        return feeBps;
+        return royalties;
     }
 
     /* EIP-2981 */
