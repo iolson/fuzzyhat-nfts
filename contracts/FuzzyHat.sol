@@ -1,11 +1,13 @@
 // SPDX-License-Identifier: MIT
+
 pragma solidity ^0.8.0;
+pragma abicoder v2;
 
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
-import "@rarible/royalties/contracts//LibPart.sol";
-import "@rarible/royalties/contracts/LibRoyaltiesV2.sol";
-import "@rarible/royalties/contracts/RoyaltiesV2.sol";
+import "./rarible/library/LibPart.sol";
+import "./rarible/library/LibRoyaltiesV2.sol";
+import "./rarible/RoyaltiesV2.sol";
 
 contract FuzzyHat is ERC721Enumerable, RoyaltiesV2 {
     using SafeMath for uint256;
@@ -160,9 +162,9 @@ contract FuzzyHat is ERC721Enumerable, RoyaltiesV2 {
     }
 
     /* Rarible Royalties V2 */
-    function getRaribleV2Royalties(uint256 id) external view override onlyValidTokenId(id) returns (LibPart.Part[] memory) {
+    function getRoyalties(uint256 id) external view override onlyValidTokenId(id) returns (LibPart.Part[] memory) {
         LibPart.Part[] memory royalties = new LibPart.Part[](1);
-        royaltyies[0] = LibPart.Part({
+        royalties[0] = LibPart.Part({
             account: payable(payoutAddress),
             value: uint96(royaltyFeeBps)
         });
