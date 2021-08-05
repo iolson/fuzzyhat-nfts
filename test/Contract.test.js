@@ -27,6 +27,11 @@ contract('Contract', (accounts) => {
             assert.notEqual(address, null)
             assert.notEqual(address, undefined)
         })
+
+        it('it sets up owner', async () => {
+            const owner = await contract.owner()
+            assert.equal(owner, accounts[0])
+        })
     })
 
     describe('interfaces', async () => {
@@ -71,7 +76,7 @@ contract('Contract', (accounts) => {
             await truffleAssert.fails(
                 contract.mintToken(metadataUri, {from: nonAdmin}),
                 truffleAssert.ErrorType.REVERT,
-                'Only admins.'
+                'Ownable: caller is not the owner'
             )
         })
 
@@ -162,7 +167,7 @@ contract('Contract', (accounts) => {
             await truffleAssert.fails(
                 contract.burn('2', {from: nonAdmin}),
                 truffleAssert.ErrorType.REVERT,
-                'Only admins.'
+                'Ownable: caller is not the owner'
             )
 
             const nonAdminAfterFailedBurnTokens = await contract.getTokensOfOwner(nonAdmin)
@@ -206,40 +211,28 @@ contract('Contract', (accounts) => {
 
     describe('contract updates', async () => {
 
-        it('non-admin fails add admin', async () => {
+        it('non-admin fails to transfer ownership', async () => {
             await truffleAssert.fails(
-                contract.addAdmin(nonAdmin, {from: nonAdmin}),
+                contract.transferOwnership(nonAdmin, {from: nonAdmin}),
                 truffleAssert.ErrorType.REVERT,
-                'Only admins.'
+                'Ownable: caller is not the owner'
             )
         })
 
-        it('can add a new admin', async () => {
+        it('can transfer ownership', async () => {
             await truffleAssert.passes(
-                contract.addAdmin(accounts[3])
+                contract.transferOwnership(accounts[3])
             )
 
-            await truffleAssert.passes(
-                contract.addAdmin(accounts[4])
-            )
-        })
-
-        it('non-admin cannot remove admin', async () => {
-            await truffleAssert.fails(
-                contract.removeAdmin(accounts[3], {from: nonAdmin}),
-                truffleAssert.ErrorType.REVERT,
-                'Only admins.'
-            )
-        })
-
-        it('can remove admin', async () => {
-            await truffleAssert.passes(
-                contract.removeAdmin(accounts[3], {from: accounts[4]})
-            )
+            let owner = await contract.owner()
+            assert.equal(owner, accounts[3])
 
             await truffleAssert.passes(
-                contract.removeAdmin(accounts[4])
+                contract.transferOwnership(fuzzyhat, {from: accounts[3]})
             )
+
+            owner = await contract.owner()
+            assert.equal(owner, fuzzyhat)
         })
 
         it('non-admin cannot update contract uri', async () => {
@@ -249,7 +242,7 @@ contract('Contract', (accounts) => {
             await truffleAssert.fails(
                 contract.updateContractUri('contract-uri', {from: nonAdmin}),
                 truffleAssert.ErrorType.REVERT,
-                'Only admins.'
+                'Ownable: caller is not the owner'
             )
 
             contractUri = await contract.contractURI()
@@ -275,7 +268,7 @@ contract('Contract', (accounts) => {
             await truffleAssert.fails(
                 contract.updatePayoutAddress(accounts[9], {from: nonAdmin}),
                 truffleAssert.ErrorType.REVERT,
-                'Only admins.'
+                'Ownable: caller is not the owner'
             )
 
             payoutAddress = await contract.payoutAddress()
@@ -298,7 +291,7 @@ contract('Contract', (accounts) => {
             await truffleAssert.fails(
                 contract.updateTokenMetadata('1', 'update', false, {from: nonAdmin}),
                 truffleAssert.ErrorType.REVERT,
-                'Only admins.'
+                'Ownable: caller is not the owner'
             )
         })
 
@@ -324,13 +317,13 @@ contract('Contract', (accounts) => {
         it('rariable can get royalties', async () => {
             const royalties = await contract.getRaribleV2Royalties('1')
             assert.equal(royalties[0].account, accounts[9])
-            assert.equal(royalties[0].value, 1000)
+            assert.equal(royalties[0].value, 500)
         })
 
         it('can properly send back data for EIP-1987 royalty standard', async () => {
             const royaltyInfo = await contract.royaltyInfo('1', web3.utils.toWei('0.1', 'ether'))
             assert.equal(royaltyInfo.receiver, accounts[9])
-            assert.equal(royaltyInfo.amount.toString(), web3.utils.toBN(web3.utils.toWei('0.01', 'ether')).toString())
+            assert.equal(royaltyInfo.amount.toString(), web3.utils.toBN(web3.utils.toWei('0.005', 'ether')).toString())
         })
     })
 })
