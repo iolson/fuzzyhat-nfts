@@ -68,6 +68,7 @@ contract FuzzyHat is Ownable, ERC721Enumerable, RoyaltiesV2 {
     constructor() ERC721("FuzzyHat NFT", "FUZZYHATNFT") {
         isAdmin[msg.sender] = true;
         payoutAddress = msg.sender;
+        contractUri = "ipfs://QmX4vVqZmJMLQuT9UxSF9gQDNmE5uSpmeja5yqcYKmrdf6";
     }
 
     // ---
