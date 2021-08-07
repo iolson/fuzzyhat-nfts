@@ -1,4 +1,5 @@
 const HDWalletProvider = require('truffle-hdwallet-provider');
+const web3 = require('web3');
 const fs = require('fs');
 const infuraKey = fs.readFileSync(".infura").toString().trim();
 const mnemonic = fs.readFileSync(".secret").toString().trim();
@@ -20,7 +21,7 @@ module.exports = {
             },
             network_id: 4,
             gas: 4500000,
-            gasPrice: 10000000000,
+            gasPrice: web3.utils.toWei('48', 'gwei'),
         },
 
         mainnet: {
@@ -29,8 +30,8 @@ module.exports = {
                     "https://mainnet.infura.io/v3/" + infuraKey, 3)
             },
             network_id: 1,
-            gas: 5500000,
-            gasPrice: 60000000000,
+            gas: 4500000,
+            gasPrice: web3.utils.toWei('47', 'gwei'),
             timeoutBlocks: 200
         }
     },
